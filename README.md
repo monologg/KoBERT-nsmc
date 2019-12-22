@@ -32,7 +32,7 @@ $ ./download_data.sh
 
 # 2. Train model and eval
 $ cd ..
-$ python3 main.py --do_train --do_eval
+$ python3 main.py --model_type kobert --do_train --do_eval
 ```
 
 ## Results
