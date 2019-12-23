@@ -1,7 +1,7 @@
 # KoBERT-nsmc
 
-- Naver-movie-review sentiment classification with KoBERT
-- Implement with `Huggingface Tranformers` library
+- KoBERT를 이용한 네이버 영화 리뷰 감정 분석 (sentiment classification)
+- `Huggingface Tranformers` 라이브러리를 이용하여 구현
 
 ## Dependencies
 
@@ -12,8 +12,9 @@
 
 ## How to use KoBERT on Huggingface Transformers Library
 
-- From transformers v2.2.2, you can upload/download personal bert model directly.
-- To use tokenizer, you have to import `KoBertTokenizer` from `tokenization_kobert.py`.
+- 기존의 KoBERT를 transformers 라이브러리에서 곧바로 사용할 수 있도록 맞췄습니다.
+  - transformers v2.2.2부터 개인이 만든 모델을 transformers를 통해 직접 업로드/다운로드하여 사용할 수 있습니다
+- Tokenizer를 사용하려면 `tokenization_kobert.py`에서 `KoBertTokenizer`를 임포트해야 합니다.
 
 ```python
 from transformers import BertModel
