@@ -4,7 +4,6 @@ import logging
 
 import torch
 import numpy as np
-from sklearn.metrics import f1_score
 
 from transformers import BertConfig, DistilBertConfig, BertTokenizer
 from tokenization_kobert import KoBertTokenizer
@@ -22,7 +21,7 @@ MODEL_PATH_MAP = {
     'kobert': 'monologg/kobert',
     'distilkobert': 'monologg/distilkobert',
     'bert': 'bert-base-multilingual-cased',
-    'kobert-lm' : 'monologg/kobert-lm'
+    'kobert-lm': 'monologg/kobert-lm'
 }
 
 
@@ -50,17 +49,14 @@ def set_seed(args):
 
 def compute_metrics(preds, labels):
     assert len(preds) == len(labels)
-    return acc_and_f1(preds, labels)
+    return acc_score(preds, labels)
 
 
 def simple_accuracy(preds, labels):
     return (preds == labels).mean()
 
 
-def acc_and_f1(preds, labels, average='macro'):
-    acc = simple_accuracy(preds, labels)
-    f1 = f1_score(y_true=labels, y_pred=preds, average=average)
+def acc_score(preds, labels):
     return {
-        "acc": acc,
-        "f1": f1,
+        "acc": simple_accuracy(preds, labels),
     }
