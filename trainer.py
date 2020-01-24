@@ -207,16 +207,16 @@ class Trainer(object):
             start_t = time.time()
             para_loader = pl.ParallelLoader(train_dataloader, [device])
             train_loop_fn(para_loader.per_device_loader(device))
-            xm.master_print('Finished training epoch {} ({} sec)'.format(epoch, time.time() - start_t))
+            xm.master_print('Finished training epoch {} ({:.2f} sec)'.format(epoch, time.time() - start_t))
 
             # Test
             start_t = time.time()
             para_loader = pl.ParallelLoader(test_dataloader, [device])
             accuracy = test_loop_fn(para_loader.per_device_loader(device))
             max_accuracy = max(accuracy, max_accuracy)
-            xm.master_print('Finished test epoch {} with accuracy of {} ({} sec)'.format(epoch, accuracy, time.time() - start_t))
+            xm.master_print('Finished test epoch {} with accuracy of {} ({:.2f} sec)'.format(epoch, accuracy, time.time() - start_t))
 
-        xm.master_print('Max Accuracy: {:.2f}%'.format(accuracy))
+        xm.master_print('Max Accuracy: {:.2f}%'.format(max_accuracy))
         return max_accuracy
 
     def save_model(self, model):

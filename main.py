@@ -29,7 +29,7 @@ if __name__ == '__main__':
     parser.add_argument("--model_type", default="kobert", type=str, help="Model type selected in the list: " + ", ".join(MODEL_CLASSES.keys()))
 
     parser.add_argument('--seed', type=int, default=42, help="random seed for initialization")
-    parser.add_argument("--batch_size", default=256, type=int, help="Batch size for training and evaluation.")
+    parser.add_argument("--batch_size", default=32, type=int, help="Batch size for training and evaluation.")
     parser.add_argument("--max_seq_len", default=50, type=int, help="The maximum total input sequence length after tokenization.")
     parser.add_argument("--learning_rate", default=5e-5, type=float, help="The initial learning rate for Adam.")
     parser.add_argument("--num_train_epochs", default=5.0, type=float, help="Total number of training epochs to perform.")
