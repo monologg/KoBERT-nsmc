@@ -41,7 +41,7 @@ $ python3 main.py --model_type kobert --do_train --do_eval
 |                   | Accuracy (%) |
 | ----------------- | ------------ |
 | KoBERT            | **89.63**    |
-| DistilKoBERT      | 88.39        |
+| DistilKoBERT      | 88.41        |
 | Bert-Multilingual | 87.07        |
 | FastText          | 85.50        |
 
