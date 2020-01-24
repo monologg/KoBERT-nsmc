@@ -146,7 +146,7 @@ class Trainer(object):
                         # xm.add_step_closure(self._train_update, args=())
 
                     if rank == 0 and self.args.save_steps > 0 and global_step % self.args.save_steps == 0:
-                        self.save_model()
+                        self.save_model(model)
 
                 if 0 < self.args.max_steps < global_step:
                     break
@@ -172,7 +172,7 @@ class Trainer(object):
                               'labels': batch[3]}
                     if self.args.model_type != 'distilkobert':
                         inputs['token_type_ids'] = batch[2]
-                    outputs = self.model(**inputs)
+                    outputs = model(**inputs)
                     tmp_eval_loss, logits = outputs[:2]
 
                     eval_loss += tmp_eval_loss.mean().item()
