@@ -142,7 +142,8 @@ class Trainer(object):
 
                     if self.args.logging_steps > 0 and global_step % self.args.logging_steps == 0:
                         # Print the train status
-                        xm.add_step_closure(self._train_update, args=(device, step, loss, tracker))
+                        self._train_update(device, step, loss, tracker)
+                        # xm.add_step_closure(self._train_update, args=())
 
                     if rank == 0 and self.args.save_steps > 0 and global_step % self.args.save_steps == 0:
                         self.save_model()
