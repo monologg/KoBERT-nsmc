@@ -16,10 +16,6 @@ def main(args):
     if args.do_train:
         trainer.train()
 
-    if args.do_eval:
-        trainer.load_model()
-        trainer.evaluate("test")
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -50,7 +46,6 @@ if __name__ == '__main__':
     parser.add_argument('--save_steps', type=int, default=2000, help="Save checkpoint every X updates steps.")
 
     parser.add_argument("--do_train", action="store_true", help="Whether to run training.")
-    parser.add_argument("--do_eval", action="store_true", help="Whether to run eval on the test set.")
     parser.add_argument("--do_lower_case", action="store_true", help="Whether to lowercase the text (For uncased model)")
     parser.add_argument("--no_cuda", action="store_true", help="Avoid using CUDA when available")
 
