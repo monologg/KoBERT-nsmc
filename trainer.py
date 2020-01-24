@@ -196,7 +196,7 @@ class Trainer(object):
             results.update(result)
 
             logger.info('[{}] Loss={:.2f} Accuracy={:.2f}%'.format(_get_device_spec(device), results['loss'], results['acc']))
-            return results['accs']
+            return results['acc']
 
         # 5. main function (train & test)
         accuracy = 0.0
