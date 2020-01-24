@@ -15,7 +15,6 @@ import torch_xla.distributed.parallel_loader as pl
 import torch_xla.utils.utils as xu
 import torch_xla.core.xla_model as xm
 import torch_xla.distributed.xla_multiprocessing as xmp
-import torch_xla.test.test_utils as test_utils
 
 from utils import set_seed, compute_metrics, get_label, MODEL_CLASSES
 
@@ -58,9 +57,10 @@ class Trainer(object):
                                           shuffle=False,
                                           batch_size=self.args.batch_size)
 
-    def _train_update(self, device, x, loss, tracker):
-        test_utils.print_training_update(device, x, loss.item(), tracker.rate(),
-                                         tracker.global_rate())
+    def _train_update(self, device, step_num, loss, tracker):
+        print('[{}]({}) Loss={:.5f} Rate={:.2f} GlobalRate={:.2f} Time={}'.format(
+            _get_device_spec(device), step_num, loss, tracker.rate(), tracker.global_rate(),
+            time.asctime()))
 
     def train(self):
         xmp.spawn(self._mp_fn, args=(), nprocs=8, start_method='fork')
