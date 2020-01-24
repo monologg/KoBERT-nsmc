@@ -209,8 +209,6 @@ def load_and_cache_examples(args, tokenizer, mode):
         logger.info("Saving features into cached file %s", cached_features_file)
         torch.save(features, cached_features_file)
 
-    features = convert_examples_to_features(examples, args.max_seq_len, tokenizer)
-
     # Convert to Tensors and build dataset
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
     all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
