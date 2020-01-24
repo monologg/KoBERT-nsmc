@@ -204,15 +204,17 @@ class Trainer(object):
 
         for epoch in range(1, int(self.args.num_train_epochs) + 1):
             # Train
+            start_t = time.time()
             para_loader = pl.ParallelLoader(train_dataloader, [device])
             train_loop_fn(para_loader.per_device_loader(device))
-            xm.master_print('Finished training epoch {}'.format(epoch))
+            xm.master_print('Finished training epoch {} ({} sec)'.format(epoch, time.time() - start_t))
 
             # Test
+            start_t = time.time()
             para_loader = pl.ParallelLoader(test_dataloader, [device])
             accuracy = test_loop_fn(para_loader.per_device_loader(device))
             max_accuracy = max(accuracy, max_accuracy)
-            xm.master_print('Finished test epoch {}'.format(epoch))
+            xm.master_print('Finished test epoch {} with accuracy of {} ({} sec)'.format(epoch, accuracy, time.time() - start_t))
 
         xm.master_print('Max Accuracy: {:.2f}%'.format(accuracy))
         return max_accuracy
