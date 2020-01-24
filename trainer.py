@@ -40,23 +40,6 @@ class Trainer(object):
 
         self.bert_config = self.config_class.from_pretrained(args.model_name_or_path, num_labels=self.num_labels, finetuning_task=args.task)
 
-        train_sampler = None
-        if xm.xrt_world_size() > 1:
-            train_sampler = torch.utils.data.distributed.DistributedSampler(
-                self.train_dataset,
-                num_replicas=xm.xrt_world_size(),
-                rank=xm.get_ordinal(),
-                shuffle=True)
-
-        self.train_dataloader = DataLoader(self.train_dataset,
-                                           sampler=train_sampler,
-                                           shuffle=False if train_sampler else True,
-                                           batch_size=self.args.batch_size)
-        self.test_dataloader = DataLoader(self.test_dataset,
-                                          sampler=SequentialSampler(self.test_dataset),
-                                          shuffle=False,
-                                          batch_size=self.args.batch_size)
-
     def _train_update(self, device, step_num, loss, tracker):
         print('[{}]({}) Loss={:.5f} Rate={:.2f} GlobalRate={:.2f} Time={}'.format(
             _get_device_spec(device), step_num, loss, tracker.rate(), tracker.global_rate(),
@@ -70,6 +53,30 @@ class Trainer(object):
         accuracy = self.main_func(rank)
 
     def main_func(self, rank):
+        # 0. Data loader
+        train_sampler = None
+        test_sampler = None
+        if xm.xrt_world_size() > 1:
+            train_sampler = torch.utils.data.distributed.DistributedSampler(
+                self.train_dataset,
+                num_replicas=xm.xrt_world_size(),
+                rank=xm.get_ordinal(),
+                shuffle=True)
+            test_sampler = torch.utils.data.distributed.DistributedSampler(
+                self.test_dataset,
+                num_replicas=xm.xrt_world_size(),
+                rank=xm.get_ordinal(),
+                shuffle=False)
+
+        train_dataloader = DataLoader(self.train_dataset,
+                                      sampler=train_sampler,
+                                      shuffle=False if train_sampler else True,
+                                      batch_size=self.args.batch_size)
+        test_dataloader = DataLoader(self.test_dataset,
+                                     sampler=test_sampler,
+                                     shuffle=False,
+                                     batch_size=self.args.batch_size)
+
         # 1. Set device
         device = xm.xla_device()
 
@@ -80,9 +87,9 @@ class Trainer(object):
         # 3. Setting the optimizer w/ new learning rate
         if self.args.max_steps > 0:
             t_total = self.args.max_steps
-            self.args.num_train_epochs = self.args.max_steps // (len(self.train_dataloader) // self.args.gradient_accumulation_steps) + 1
+            self.args.num_train_epochs = self.args.max_steps // (len(train_dataloader) // self.args.gradient_accumulation_steps) + 1
         else:
-            t_total = len(self.train_dataloader) // self.args.gradient_accumulation_steps * self.args.num_train_epochs
+            t_total = len(train_dataloader) // self.args.gradient_accumulation_steps * self.args.num_train_epochs
 
         # Prepare optimizer and schedule (linear warmup and decay)
         no_decay = ['bias', 'LayerNorm.weight']
@@ -111,7 +118,7 @@ class Trainer(object):
 
             for step, batch in enumerate(loader):
                 model.train()
-                batch = tuple(t.to(device) for t in batch)  # GPU or CPU
+                batch = tuple(t.to(device) for t in batch[1])  # GPU or CPU
                 inputs = {'input_ids': batch[0],
                           'attention_mask': batch[1],
                           'labels': batch[3]}
@@ -157,7 +164,7 @@ class Trainer(object):
             model.eval()
 
             for batch in loader:
-                batch = tuple(t.to(device) for t in batch)
+                batch = tuple(t.to(device) for t in batch[1])
                 with torch.no_grad():
                     inputs = {'input_ids': batch[0],
                               'attention_mask': batch[1],
@@ -196,12 +203,12 @@ class Trainer(object):
 
         for epoch in range(1, int(self.args.num_train_epochs) + 1):
             # Train
-            para_loader = pl.ParallelLoader(self.train_dataloader, [device])
+            para_loader = pl.ParallelLoader(train_dataloader, [device])
             train_loop_fn(para_loader.per_device_loader(device))
             xm.master_print('Finished training epoch {}'.format(epoch))
 
             # Test
-            para_loader = pl.ParallelLoader(self.test_dataloader, [device])
+            para_loader = pl.ParallelLoader(test_dataloader, [device])
             accuracy = test_loop_fn(para_loader.per_device_loader(device))
             max_accuracy = max(accuracy, max_accuracy)
             xm.master_print('Finished test epoch {}'.format(epoch))
@@ -229,7 +236,6 @@ class Trainer(object):
             self.bert_config = self.config_class.from_pretrained(self.args.model_dir)
             logger.info("***** Config loaded *****")
             self.model = self.model_class.from_pretrained(self.args.model_dir, config=self.bert_config, args=self.args)
-            self.model.to(self.device)
             logger.info("***** Model Loaded *****")
         except:
             raise Exception("Some model files might be missing...")
