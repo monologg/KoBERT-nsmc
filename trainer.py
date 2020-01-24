@@ -63,7 +63,7 @@ class Trainer(object):
             time.asctime()))
 
     def train(self):
-        xmp.spawn(self._mp_fn, args=(), nprocs=8, start_method='fork')
+        xmp.spawn(self._mp_fn, args=(), nprocs=8)
 
     def _mp_fn(self, rank):
         torch.set_default_tensor_type('torch.FloatTensor')
@@ -73,7 +73,11 @@ class Trainer(object):
         # 1. Set device
         device = xm.xla_device()
 
-        # 2. Setting the optimizer w/ new learning rate
+        # 2. Set model
+        model = self.model_class(self.bert_config, self.args).to(device)
+        model.zero_grad()
+
+        # 3. Setting the optimizer w/ new learning rate
         if self.args.max_steps > 0:
             t_total = self.args.max_steps
             self.args.num_train_epochs = self.args.max_steps // (len(self.train_dataloader) // self.args.gradient_accumulation_steps) + 1
@@ -83,17 +87,13 @@ class Trainer(object):
         # Prepare optimizer and schedule (linear warmup and decay)
         no_decay = ['bias', 'LayerNorm.weight']
         optimizer_grouped_parameters = [
-            {'params': [p for n, p in self.model.named_parameters() if not any(nd in n for nd in no_decay)],
+            {'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)],
              'weight_decay': self.args.weight_decay},
-            {'params': [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+            {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
         ]
 
         optimizer = AdamW(optimizer_grouped_parameters, lr=self.args.learning_rate * xm.xrt_world_size(), eps=self.args.adam_epsilon)
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=self.args.warmup_steps, num_training_steps=t_total)
-
-        # 3. Set model
-        model = self.model_class(self.bert_config, self.args).to(device)
-        model.zero_grad()
 
         # 4. Set seed (minor)
         set_seed(self.args)
