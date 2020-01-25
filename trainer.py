@@ -40,17 +40,15 @@ class Trainer(object):
 
         self.bert_config = self.config_class.from_pretrained(args.model_name_or_path, num_labels=self.num_labels, finetuning_task=args.task)
 
-    def _train_update(self, device, step_num, loss, tracker):
-        print('[{}]({}) Loss={:.5f} Rate={:.2f} GlobalRate={:.2f} Time={}'.format(
-            _get_device_spec(device), step_num, loss, tracker.rate(), tracker.global_rate(),
-            time.asctime()))
+    def _train_update(self, device, step_num, loss):
+        print('[{}]({}) Loss={:.5f} Time={}'.format(_get_device_spec(device), step_num, loss, time.asctime()))
 
     def train(self):
         xmp.spawn(self._mp_fn, args=(), nprocs=8)
 
     def _mp_fn(self, rank):
         torch.set_default_tensor_type('torch.FloatTensor')
-        accuracy = self.main_func(rank)
+        self.main_func(rank)
 
     def main_func(self, rank):
         # 0. Data loader
@@ -99,7 +97,7 @@ class Trainer(object):
             {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
         ]
 
-        optimizer = AdamW(optimizer_grouped_parameters, lr=self.args.learning_rate * xm.xrt_world_size(), eps=self.args.adam_epsilon)
+        optimizer = AdamW(optimizer_grouped_parameters, lr=self.args.learning_rate, eps=self.args.adam_epsilon)
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=self.args.warmup_steps, num_training_steps=t_total)
 
         # 4. Set seed (minor)
@@ -113,7 +111,6 @@ class Trainer(object):
                 logger.info("  Total train batch size = %d", self.args.batch_size)
                 logger.info("  Gradient Accumulation steps = %d", self.args.gradient_accumulation_steps)
 
-            tracker = xm.RateTracker()
             global_step = 0
 
             for step, batch in enumerate(loader):
@@ -142,7 +139,7 @@ class Trainer(object):
 
                     if self.args.logging_steps > 0 and global_step % self.args.logging_steps == 0:
                         # Print the train status
-                        self._train_update(device, step, loss, tracker)
+                        self._train_update(device, step, loss)
                         # xm.add_step_closure(self._train_update, args=())
 
                     if rank == 0 and self.args.save_steps > 0 and global_step % self.args.save_steps == 0:
