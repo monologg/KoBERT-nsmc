@@ -84,8 +84,6 @@ class NsmcProcessor(object):
             line = line.split('\t')
             guid = "%s-%s" % (set_type, i)
             text_a = line[1]
-            if self.args.do_lower_case:
-                text_a = text_a.lower()
             label = int(line[2])
             if i % 1000 == 0:
                 logger.info(line)
@@ -182,21 +180,31 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
     return features
 
 
-def load_examples(args, tokenizer, mode):
+def load_and_cache_examples(args, tokenizer, mode):
     processor = processors[args.task](args)
 
-    # Load data features from dataset file
-    logger.info("Creating features from dataset file at %s", args.data_dir)
-    if mode == "train":
-        examples = processor.get_examples("train")
-    elif mode == "dev":
-        examples = processor.get_examples("dev")
-    elif mode == "test":
-        examples = processor.get_examples("test")
-    else:
-        raise Exception("For mode, Only train, dev, test is available")
+    # Load data features from cache or dataset file
+    cached_file_name = 'cached_{}_{}_{}_{}'.format(
+        args.task, list(filter(None, args.model_name_or_path.split("/"))).pop(), args.max_seq_len, mode)
 
-    features = convert_examples_to_features(examples, args.max_seq_len, tokenizer)
+    cached_features_file = os.path.join(args.data_dir, cached_file_name)
+    if os.path.exists(cached_features_file):
+        logger.info("Loading features from cached file %s", cached_features_file)
+        features = torch.load(cached_features_file)
+    else:
+        logger.info("Creating features from dataset file at %s", args.data_dir)
+        if mode == "train":
+            examples = processor.get_examples("train")
+        elif mode == "dev":
+            examples = processor.get_examples("dev")
+        elif mode == "test":
+            examples = processor.get_examples("test")
+        else:
+            raise Exception("For mode, Only train, dev, test is available")
+
+        features = convert_examples_to_features(examples, args.max_seq_len, tokenizer)
+        logger.info("Saving features into cached file %s", cached_features_file)
+        torch.save(features, cached_features_file)
 
     # Convert to Tensors and build dataset
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
