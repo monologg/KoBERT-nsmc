@@ -8,7 +8,6 @@
 - torch>=1.1.0
 - transformers>=2.2.2
 - sentencepiece>=0.1.82
-- scikit-learn
 
 ## How to use KoBERT on Huggingface Transformers Library
 
