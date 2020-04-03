@@ -5,7 +5,7 @@ from tqdm import tqdm, trange
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from transformers import AdamW, get_linear_schedule_with_warmup, AutoModelForSequenceClassification
+from transformers import AdamW, get_linear_schedule_with_warmup
 
 from utils import set_seed, compute_metrics, get_label, MODEL_CLASSES
 
