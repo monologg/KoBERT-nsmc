@@ -24,7 +24,11 @@ class Trainer(object):
 
         self.config_class, self.model_class, _ = MODEL_CLASSES[args.model_type]
 
-        self.config = self.config_class.from_pretrained(args.model_name_or_path, num_labels=self.num_labels, finetuning_task=args.task)
+        self.config = self.config_class.from_pretrained(args.model_name_or_path,
+                                                        num_labels=self.num_labels, 
+                                                        finetuning_task=args.task,
+                                                        id2label={str(i): label for i, label in enumerate(self.label_lst)},
+                                                        label2id={label: i for i, label in enumerate(self.label_lst)})
         self.model = self.model_class.from_pretrained(args.model_name_or_path, config=self.config)
 
         # GPU or CPU
