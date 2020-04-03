@@ -120,7 +120,6 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
     # Setting based on the current model type
     cls_token = tokenizer.cls_token
     sep_token = tokenizer.sep_token
-    unk_token = tokenizer.unk_token
     pad_token_id = tokenizer.pad_token_id
 
     features = []

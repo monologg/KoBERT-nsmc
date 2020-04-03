@@ -170,14 +170,14 @@ class Trainer(object):
 
     def save_model(self):
         # Save model checkpoint (Overwrite)
-        output_dir = os.path.join(self.args.model_dir)
-
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+        if not os.path.exists(self.args.model_dir):
+            os.makedirs(self.args.model_dir)
         model_to_save = self.model.module if hasattr(self.model, 'module') else self.model
-        model_to_save.save_pretrained(output_dir)
-        torch.save(self.args, os.path.join(output_dir, 'training_config.bin'))
-        logger.info("Saving model checkpoint to %s", output_dir)
+        model_to_save.save_pretrained(self.args.model_dir)
+        
+        # Save training arguments together with the trained model
+        torch.save(self.args, os.path.join(self.args.model_dir, 'training_args.bin'))
+        logger.info("Saving model checkpoint to %s", self.args.model_dir)
 
     def load_model(self):
         # Check whether model exists
