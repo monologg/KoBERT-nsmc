@@ -1,13 +1,12 @@
 # KoBERT-nsmc
 
 - KoBERT를 이용한 네이버 영화 리뷰 감정 분석 (sentiment classification)
-- `Huggingface Tranformers` 라이브러리를 이용하여 구현
+- 🤗`Huggingface Tranformers`🤗 라이브러리를 이용하여 구현
 
 ## Dependencies
 
-- torch>=1.1.0
-- transformers>=2.2.2
-- sentencepiece>=0.1.82
+- torch==1.4.0
+- transformers==2.7.0
 
 ## How to use KoBERT on Huggingface Transformers Library
 
@@ -33,6 +32,12 @@ $ ./download_data.sh
 # 2. Train model and eval
 $ cd ..
 $ python3 main.py --model_type kobert --do_train --do_eval
+```
+
+## Prediction
+
+```bash
+$ python3 predict.py --input_file {INPUT_FILE_PATH} --output_file {OUTPUT_FILE_PATH} --model_dir {SAVED_CKPT_PATH}
 ```
 
 ## Results

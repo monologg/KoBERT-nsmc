@@ -6,34 +6,35 @@ from tqdm import tqdm, trange
 import numpy as np
 import torch
 from torch.utils.data import TensorDataset, DataLoader, SequentialSampler
+from transformers import AutoModelForSequenceClassification
 
-from utils import init_logger, MODEL_CLASSES, load_tokenizer
+from utils import init_logger, load_tokenizer
 
 logger = logging.getLogger(__name__)
 
 
-def load_model(pred_config):
+def get_device(pred_config):
+    return "cuda" if torch.cuda.is_available() and not pred_config.no_cuda else "cpu"
+
+
+def get_args(pred_config):
+    return torch.load(os.path.join(pred_config.model_dir, 'training_args.bin'))
+
+
+def load_model(pred_config, args, device):
     # Check whether model exists
     if not os.path.exists(pred_config.model_dir):
         raise Exception("Model doesn't exists! Train first!")
 
     try:
-        # Load arg first
-        args = torch.load(os.path.join(pred_config.model_dir, 'training_args.bin'))
-
-        config_class, model_class, _ = MODEL_CLASSES[args.model_type]
-
-        bert_config = config_class.from_pretrained(args.model_dir)
-        model = model_class.from_pretrained(args.model_dir, config=bert_config, args=args)
-
-        device = "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu"
+        model = AutoModelForSequenceClassification.from_pretrained(args.model_dir)  # Config will be automatically loaded from model_dir
         model.to(device)
         model.eval()
         logger.info("***** Model Loaded *****")
     except:
         raise Exception("Some model files might be missing...")
 
-    return model, args, device
+    return model
 
 
 def convert_input_file_to_tensor_dataset(pred_config,
@@ -97,7 +98,9 @@ def convert_input_file_to_tensor_dataset(pred_config,
 
 def predict(pred_config):
     # load model and args
-    model, args, device = load_model(pred_config)
+    args = get_args(pred_config)
+    device = get_device(pred_config)
+    model = load_model(pred_config, args, device)
     logger.info(args)
 
     # Convert input file to TensorDataset
@@ -114,12 +117,12 @@ def predict(pred_config):
         with torch.no_grad():
             inputs = {"input_ids": batch[0],
                       "attention_mask": batch[1],
-                      "labels":None}
+                      "labels": None}
             if args.model_type != "distilkobert":
                 inputs["token_type_ids"] = batch[2]
             outputs = model(**inputs)
             logits = outputs[0]
-            
+
             if preds is None:
                 preds = logits.detach().cpu().numpy()
             else:
@@ -132,15 +135,19 @@ def predict(pred_config):
         for pred in preds:
             f.write("{}\n".format(pred))
 
+    logger.info("Prediction Done!")
+
 
 if __name__ == "__main__":
     init_logger()
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--model_dir", default="./model", type=str, help="Path to save, load model")
     parser.add_argument("--input_file", default="sample_pred_in.txt", type=str, help="Input file for prediction")
     parser.add_argument("--output_file", default="sample_pred_out.txt", type=str, help="Output file for prediction")
+    parser.add_argument("--model_dir", default="./model", type=str, help="Path to save, load model")
+
     parser.add_argument("--batch_size", default=32, type=int, help="Batch size for prediction")
+    parser.add_argument("--no_cuda", action="store_true", help="Avoid using CUDA when available")
 
     pred_config = parser.parse_args()
     predict(pred_config)

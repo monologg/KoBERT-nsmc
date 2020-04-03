@@ -33,7 +33,8 @@ if __name__ == '__main__':
     parser.add_argument("--model_type", default="kobert", type=str, help="Model type selected in the list: " + ", ".join(MODEL_CLASSES.keys()))
 
     parser.add_argument('--seed', type=int, default=42, help="random seed for initialization")
-    parser.add_argument("--batch_size", default=32, type=int, help="Batch size for training and evaluation.")
+    parser.add_argument("--train_batch_size", default=32, type=int, help="Batch size for training.")
+    parser.add_argument("--eval_batch_size", default=64, type=int, help="Batch size for evaluation.")
     parser.add_argument("--max_seq_len", default=50, type=int, help="The maximum total input sequence length after tokenization.")
     parser.add_argument("--learning_rate", default=5e-5, type=float, help="The initial learning rate for Adam.")
     parser.add_argument("--num_train_epochs", default=5.0, type=float, help="Total number of training epochs to perform.")
@@ -44,7 +45,6 @@ if __name__ == '__main__':
     parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
     parser.add_argument("--max_steps", default=-1, type=int, help="If > 0: set total number of training steps to perform. Override num_train_epochs.")
     parser.add_argument("--warmup_steps", default=0, type=int, help="Linear warmup over warmup_steps.")
-    parser.add_argument("--dropout_rate", default=0.1, type=float, help="Dropout for fully-connected layers")
 
     parser.add_argument('--logging_steps', type=int, default=2000, help="Log every X updates steps.")
     parser.add_argument('--save_steps', type=int, default=2000, help="Save checkpoint every X updates steps.")

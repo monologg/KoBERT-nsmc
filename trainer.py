@@ -5,7 +5,7 @@ from tqdm import tqdm, trange
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from transformers import AdamW, get_linear_schedule_with_warmup
+from transformers import AdamW, get_linear_schedule_with_warmup, AutoModelForSequenceClassification
 
 from utils import set_seed, compute_metrics, get_label, MODEL_CLASSES
 
@@ -24,8 +24,8 @@ class Trainer(object):
 
         self.config_class, self.model_class, _ = MODEL_CLASSES[args.model_type]
 
-        self.bert_config = self.config_class.from_pretrained(args.model_name_or_path, num_labels=self.num_labels, finetuning_task=args.task)
-        self.model = self.model_class(self.bert_config, args)
+        self.config = self.config_class.from_pretrained(args.model_name_or_path, num_labels=self.num_labels, finetuning_task=args.task)
+        self.model = self.model_class.from_pretrained(args.model_name_or_path, config=self.config)
 
         # GPU or CPU
         self.device = "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu"
@@ -33,7 +33,7 @@ class Trainer(object):
 
     def train(self):
         train_sampler = RandomSampler(self.train_dataset)
-        train_dataloader = DataLoader(self.train_dataset, sampler=train_sampler, batch_size=self.args.batch_size)
+        train_dataloader = DataLoader(self.train_dataset, sampler=train_sampler, batch_size=self.args.train_batch_size)
 
         if self.args.max_steps > 0:
             t_total = self.args.max_steps
@@ -55,7 +55,7 @@ class Trainer(object):
         logger.info("***** Running training *****")
         logger.info("  Num examples = %d", len(self.train_dataset))
         logger.info("  Num Epochs = %d", self.args.num_train_epochs)
-        logger.info("  Total train batch size = %d", self.args.batch_size)
+        logger.info("  Total train batch size = %d", self.args.train_batch_size)
         logger.info("  Gradient Accumulation steps = %d", self.args.gradient_accumulation_steps)
         logger.info("  Total optimization steps = %d", t_total)
 
@@ -118,12 +118,12 @@ class Trainer(object):
             raise Exception("Only dev and test dataset available")
 
         eval_sampler = SequentialSampler(dataset)
-        eval_dataloader = DataLoader(dataset, sampler=eval_sampler, batch_size=self.args.batch_size)
+        eval_dataloader = DataLoader(dataset, sampler=eval_sampler, batch_size=self.args.eval_batch_size)
 
         # Eval!
         logger.info("***** Running evaluation on %s dataset *****", mode)
         logger.info("  Num examples = %d", len(dataset))
-        logger.info("  Batch size = %d", self.args.batch_size)
+        logger.info("  Batch size = %d", self.args.eval_batch_size)
         eval_loss = 0.0
         nb_eval_steps = 0
         preds = None
@@ -174,7 +174,7 @@ class Trainer(object):
             os.makedirs(self.args.model_dir)
         model_to_save = self.model.module if hasattr(self.model, 'module') else self.model
         model_to_save.save_pretrained(self.args.model_dir)
-        
+
         # Save training arguments together with the trained model
         torch.save(self.args, os.path.join(self.args.model_dir, 'training_args.bin'))
         logger.info("Saving model checkpoint to %s", self.args.model_dir)
@@ -185,9 +185,7 @@ class Trainer(object):
             raise Exception("Model doesn't exists! Train first!")
 
         try:
-            self.bert_config = self.config_class.from_pretrained(self.args.model_dir)
-            logger.info("***** Config loaded *****")
-            self.model = self.model_class.from_pretrained(self.args.model_dir, config=self.bert_config, args=self.args)
+            self.model = self.model_class.from_pretrained(self.args.model_dir)
             self.model.to(self.device)
             logger.info("***** Model Loaded *****")
         except:

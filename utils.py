@@ -5,16 +5,14 @@ import logging
 import torch
 import numpy as np
 
-from transformers import BertConfig, DistilBertConfig, BertTokenizer
+from transformers import BertConfig, DistilBertConfig, BertTokenizer, BertForSequenceClassification, DistilBertForSequenceClassification
 from tokenization_kobert import KoBertTokenizer
 
-from model import BertClassifier, DistilBertClassifier
-
 MODEL_CLASSES = {
-    'kobert': (BertConfig, BertClassifier, KoBertTokenizer),
-    'distilkobert': (DistilBertConfig, DistilBertClassifier, KoBertTokenizer),
-    'bert': (BertConfig, BertClassifier, BertTokenizer),
-    'kobert-lm': (BertConfig, BertClassifier, KoBertTokenizer),
+    'kobert': (BertConfig, BertForSequenceClassification, KoBertTokenizer),
+    'distilkobert': (DistilBertConfig, DistilBertForSequenceClassification, KoBertTokenizer),
+    'bert': (BertConfig, BertForSequenceClassification, BertTokenizer),
+    'kobert-lm': (BertConfig, BertForSequenceClassification, KoBertTokenizer),
 }
 
 MODEL_PATH_MAP = {
