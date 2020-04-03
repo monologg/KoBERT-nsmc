@@ -54,7 +54,7 @@ def convert_input_file_to_tensor_dataset(pred_config,
     all_attention_mask = []
     all_token_type_ids = []
 
-    with open(pred_config.input_file, "r", encoding="utf-8") as f:
+    with open(pred_config.input_file, "r", encoding="unicode_escape") as f:
         for line in f:
             line = line.strip()
             tokens = tokenizer.tokenize(line)
