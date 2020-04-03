@@ -58,6 +58,8 @@ class Trainer(object):
         logger.info("  Total train batch size = %d", self.args.train_batch_size)
         logger.info("  Gradient Accumulation steps = %d", self.args.gradient_accumulation_steps)
         logger.info("  Total optimization steps = %d", t_total)
+        logger.info("  Logging steps = %d", self.args.logging_steps)
+        logger.info("  Save steps = %d", self.args.save_steps)
 
         global_step = 0
         tr_loss = 0.0
