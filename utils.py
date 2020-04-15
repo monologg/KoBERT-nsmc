@@ -6,6 +6,8 @@ import torch
 import numpy as np
 
 from transformers import BertConfig, DistilBertConfig, BertTokenizer, BertForSequenceClassification, DistilBertForSequenceClassification
+from transformers import ElectraConfig, ElectraTokenizer
+from model import ElectraForSequenceClassification
 from tokenization_kobert import KoBertTokenizer
 
 MODEL_CLASSES = {
@@ -13,13 +15,17 @@ MODEL_CLASSES = {
     'distilkobert': (DistilBertConfig, DistilBertForSequenceClassification, KoBertTokenizer),
     'bert': (BertConfig, BertForSequenceClassification, BertTokenizer),
     'kobert-lm': (BertConfig, BertForSequenceClassification, KoBertTokenizer),
+    'koelectra-small': (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer),
+    'koelectra-base': (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer)
 }
 
 MODEL_PATH_MAP = {
     'kobert': 'monologg/kobert',
     'distilkobert': 'monologg/distilkobert',
     'bert': 'bert-base-multilingual-cased',
-    'kobert-lm': 'monologg/kobert-lm'
+    'kobert-lm': 'monologg/kobert-lm',
+    'koelectra-small': 'monologg/koelectra-small-discriminator',
+    'koelectra-base': 'monologg/koelectra-base-discriminator'
 }
 
 
