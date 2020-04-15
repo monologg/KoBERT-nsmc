@@ -25,12 +25,6 @@ tokenizer = KoBertTokenizer.from_pretrained('monologg/kobert')
 ## Usage
 
 ```bash
-# 1. Download data
-$ cd data
-$ ./download_data.sh
-
-# 2. Train model and eval
-$ cd ..
 $ python3 main.py --model_type kobert --do_train --do_eval
 ```
 
