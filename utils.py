@@ -10,13 +10,17 @@ from transformers import ElectraConfig, ElectraTokenizer
 from model import ElectraForSequenceClassification
 from tokenization_kobert import KoBertTokenizer
 
+from tokenization_kocharelectra import KoCharElectraTokenizer
+
 MODEL_CLASSES = {
     'kobert': (BertConfig, BertForSequenceClassification, KoBertTokenizer),
     'distilkobert': (DistilBertConfig, DistilBertForSequenceClassification, KoBertTokenizer),
     'bert': (BertConfig, BertForSequenceClassification, BertTokenizer),
     'kobert-lm': (BertConfig, BertForSequenceClassification, KoBertTokenizer),
     'koelectra-small': (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer),
-    'koelectra-base': (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer)
+    'koelectra-base': (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer),
+    'kocharelectra-base': (ElectraConfig, ElectraForSequenceClassification, KoCharElectraTokenizer),
+    'kocharelectra-small': (ElectraConfig, ElectraForSequenceClassification, KoCharElectraTokenizer),
 }
 
 MODEL_PATH_MAP = {
@@ -25,7 +29,9 @@ MODEL_PATH_MAP = {
     'bert': 'bert-base-multilingual-cased',
     'kobert-lm': 'monologg/kobert-lm',
     'koelectra-small': 'monologg/koelectra-small-discriminator',
-    'koelectra-base': 'monologg/koelectra-base-discriminator'
+    'koelectra-base': 'monologg/koelectra-base-discriminator',
+    'kocharelectra-base': 'monologg/kocharelectra-base-discriminator',
+    'kocharelectra-small': 'monologg/kocharelectra-small-discriminator'
 }
 
 
