@@ -6,7 +6,7 @@
 ## Dependencies
 
 - torch==1.4.0
-- transformers==2.7.0
+- transformers==2.9.1
 
 ## How to use KoBERT on Huggingface Transformers Library
 
